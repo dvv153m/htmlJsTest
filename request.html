@@ -1,0 +1,155 @@
+<html>
+<head>
+    <script type="text/javascript">
+        		
+		var requestProvider = new HttpJsonRequestProvider();
+		
+		function HttpJsonRequestProvider() {
+
+            //создаем объект, позволяющий делать HTTP-запросы
+            var xmlhttp = new XMLHttpRequest();
+
+            // url - ссылка на ресурс
+            // sendData - данные для отправки
+            // method - метод запроса ('GET', 'POST', 'PUT'...)
+            //   Если method не был задан, то будет выполнен POST-запрос.
+            // Поле url - обязательное.
+            // Метод sendRequest возвращает результат запроса {status, response}.
+            var sendRequest = function (url, sendData, method, contentType, authorizationToken) {
+                if (!url)
+                    throw new Error('Url required.');
+                //если метод не передан, то подразумевается POST
+                method = method || "POST";
+
+                //создаем соединение
+                xmlhttp.open(method, url, false);
+                //задаем header
+                xmlhttp.setRequestHeader("Accept", "json");
+                xmlhttp.setRequestHeader("Content-Type", contentType);
+                //если приложен authorizationToken
+                if (authorizationToken) {
+                    xmlhttp.setRequestHeader("authorization", authorizationToken);
+                }
+                //отправляем
+				try{
+                xmlhttp.send(sendData);
+				}
+				catch(e){
+					alert("error send " + e);
+				}
+
+                //возвращаем статус и тело ответа
+                var responseText = xmlhttp.responseText;
+                var parsedJson;
+                if (responseText) {
+                    try {
+                        //создаем объект из полученного JSON
+                        parsedJson = JSON.parse(responseText);
+                    } catch (e) {
+                        alert("Incorrect JSON response from server");
+                    }
+                }
+                return {
+                    status: xmlhttp.status,
+                    response: parsedJson
+                };
+            };
+
+            this.GET = function (url, sendData) {
+                return sendRequest(url, sendData, 'GET');
+            };
+
+            this.POST = function (url, sendData, contentType) {
+                return sendRequest(url, sendData, 'POST', contentType);
+            };
+
+            this.GETAuthorized = function (url, sendData, authorizationToken) {
+                return sendRequest(url, sendData, 'GET', null, authorizationToken);
+            };
+
+            this.POSTAuthorized = function (url, sendData, authorizationToken) {
+                return sendRequest(url, sendData, 'POST', authorizationToken);
+            };
+
+            this.GETAsync = function (url, sendData, callback) {
+                return RequestAsync(url, sendData, 'GET', null, callback);
+            };
+
+            this.POSTAsync = function (url, sendData, callback) {
+                return RequestAsync(url, sendData, 'POST', null, callback);
+            };
+
+            this.GETAuthorizedAsync = function (url, sendData, authorizationToken, callback) {
+                return RequestAsync(url, sendData, 'GET', authorizationToken, callback);
+            };
+
+            this.POSTAuthorizedAsync = function (url, sendData, authorizationToken, callback) {
+                return RequestAsync(url, sendData, 'POST', authorizationToken, callback);
+            };
+        }
+				
+		function fetchData(url){
+		
+			return fetch(url)
+			  .then(status) 
+			  .then(json)	  
+			  .catch(error =>
+			  {
+				var er = error;
+				console.log(er);
+			  });
+		}
+		
+		function status(response) {  
+			if (response.status >= 200 && response.status < 300) {  
+				return Promise.resolve(response)  
+			} else {  
+				return Promise.reject(new Error(response.statusText))  
+			}  
+		}
+
+		function json(response) {  
+			return response.json()  
+		}
+		
+		function test(fId) {
+            				
+			var url  = document.getElementById(fId).value;
+			
+			fetchData(url)
+			  .then(data => 
+			  {
+			    if (typeof data != "undefined") {
+				
+				  var temp = data;
+				  alert("Success " + temp);
+				}
+				else{
+				
+					alert("undefined");
+				}
+											      				
+			  });			
+        }			
+				
+		function test2(fId) {
+            				
+			var url  = document.getElementById(fId).value;
+			var res = requestProvider.GET(url, "").response;
+			alert(res);		
+        }
+        
+    </script>
+</head>
+<body>
+	
+	<input type="text" id="r1" style="width: 450px;" value="http://192.168.4.3/login?ssId=ASUSWiFi&password=Akvalang741"><br/><br/>
+    <button onclick="test('r1')">Click</button>
+	<button onclick="test2('r1')">ClickOld</button><br/><br/>
+
+    <input type="text" id="r2" style="width: 450px;" value="http://192.168.4.3/login?ssId=SCOUT_CORP&password=IntelSoft2033"><br/><br/>
+    <button onclick="test('r2')">Click</button>  
+	<button onclick="test2('r2')">ClickOld</button><br/><br/>	
+</div>
+</body>
+</html>
